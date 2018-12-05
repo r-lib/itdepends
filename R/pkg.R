@@ -23,8 +23,8 @@ pkg_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org")
 
   packages <- stats::setNames(packages, packages)
 
-  user_deps = lapply(packages, find_deps, available = the$db, top_dep = NA, rec_dep = NA, include_pkgs = FALSE)
-  dev_deps = lapply(packages, find_deps, available = the$db, top_dep = TRUE, rec_dep = NA, include_pkgs = FALSE)
+  user_deps <- lapply(packages, find_deps, available = the$db, top_dep = NA, rec_dep = NA, include_pkgs = FALSE)
+  dev_deps <- lapply(packages, find_deps, available = the$db, top_dep = TRUE, rec_dep = NA, include_pkgs = FALSE)
 
   std_pkgs <- unlist(tools:::.get_standard_package_names())
 
@@ -51,7 +51,6 @@ pkg_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org")
   # TODO: what timezone is the CRAN machine in?
   last_release <- as.POSIXct(the$current[packages, "mtime"])
 
-  archived_releases <- the$archive[packages]
   archived_release_dates <- lapply(the$archive[packages], function(p) as.POSIXct(p[["mtime"]]))
 
   first_release <- .POSIXct(unlist(lapply(archived_release_dates, function(date) min(sort(date)))))

@@ -8,10 +8,11 @@ Authors@R:
            email = "james.f.hester@gmail.com")
 Description: Weigh a package based on it's number of dependencies, time to install and other factors.
 Imports:
+  lintr,
   xml2,
   rvest,
   tibble
 License: What license it uses
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
