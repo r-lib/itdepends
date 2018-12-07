@@ -11,7 +11,12 @@ Imports:
   lintr,
   xml2,
   rvest,
-  tibble
+  tibble,
+  rlang,
+  requirements,
+  purrr
+Remotes:
+  hadley/requirements
 License: What license it uses
 Encoding: UTF-8
 LazyData: true
