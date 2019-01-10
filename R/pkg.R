@@ -15,21 +15,14 @@
 #'   It also gives you some idea of the API size, which can give you an idea
 #'   how likely it is to change in the future
 #' @export
-pkg_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org")) {
-
-  if (is.null(the$db)) {
-    the$db <- available.packages(repos = repos, type = "source")
-  }
+dep_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org"), when = "last-week") {
 
   packages <- stats::setNames(packages, packages)
 
-  user_deps <- lapply(packages, find_deps, available = the$db, top_dep = NA, rec_dep = NA, include_pkgs = FALSE)
-  dev_deps <- lapply(packages, find_deps, available = the$db, top_dep = TRUE, rec_dep = NA, include_pkgs = FALSE)
+  user_deps <- lapply(packages, find_deps, top_dep = NA, rec_dep = NA, include_pkgs = FALSE)
+  dev_deps <- lapply(packages, find_deps, top_dep = TRUE, rec_dep = NA, include_pkgs = FALSE)
 
   std_pkgs <- unlist(tools:::.get_standard_package_names())
-
-  user_deps <- filter_deps(user_deps, std_pkgs)
-  dev_deps <- filter_deps(dev_deps, std_pkgs)
 
   exported_funs <- lapply(packages, function(p) tryCatch(getNamespaceExports(p), error = function(e) NA))
 
@@ -37,7 +30,15 @@ pkg_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org")
 
   timings_user <- lapply(user_deps, get_timings)
 
-  deps_install <- vapply(timings_user, function(x) sum(median_install_time(x)), numeric(1))
+  timings_dev <- lapply(dev_deps, get_timings)
+
+  bin_user <- vapply(user_deps, function(x) sum(bin_size(x), na.rm = TRUE), numeric(1))
+
+  bin_dev <- vapply(dev_deps, function(x) sum(bin_size(x), na.rm = TRUE), numeric(1))
+
+  deps_install <- vapply(timings_user, function(x) sum(median_install_time(x), na.rm = TRUE), numeric(1))
+
+  dev_dep_install <- vapply(timings_dev, function(x) sum(median_install_time(x), na.rm = TRUE), numeric(1))
 
   if (is.null(the$archive)) {
     the$archive <- tools:::read_CRAN_object(repos[["CRAN"]], "src/contrib/Meta/archive.rds")
@@ -46,12 +47,10 @@ pkg_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org")
     the$current <- tools:::read_CRAN_object(repos[["CRAN"]], "src/contrib/Meta/current.rds")
   }
 
-  size <- the$current[packages, "size"]
-
   # TODO: what timezone is the CRAN machine in?
   last_release <- as.POSIXct(the$current[packages, "mtime"])
 
-  archived_release_dates <- lapply(the$archive[packages], function(p) as.POSIXct(p[["mtime"]]))
+  archived_release_dates <- lapply(the$archive[packages], function(p) as.POSIXct(p[["mtime"]] %||% NA, ))
 
   first_release <- .POSIXct(unlist(lapply(archived_release_dates, function(date) min(sort(date)))))
 
@@ -61,43 +60,67 @@ pkg_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org")
 
   releases_last_52 <- archived_releases_last_52 + as.integer(last_release > time_52_weeks_ago)
 
+  downloads <- vapply(packages, get_downloads, numeric(1), when = when)
+
+  gh_info <- dplyr::bind_rows(lapply(packages, get_github_info))
+
   tibble::tibble(
     package = packages,
-    user_deps = lengths(user_deps),
-    dev_deps = lengths(dev_deps),
-    self_install = median_install_time(timings),
-    deps_install = deps_install,
-    compiled = ifelse(the$db[packages, "NeedsCompilation"] == "yes", TRUE, FALSE),
-    exported_funs = lengths(exported_funs),
-    size = size,
-    first_release = first_release,
+    num_user = lengths(user_deps),
+    bin_self = bin_size(packages),
+    bin_user = bin_self + bin_user,
+    install_self = median_install_time(timings),
+    install_user = install_self + deps_install,
+    funs = vapply(exported_funs, function(x) if (all(is.na(x))) NA_integer_ else length(x), integer(1)),
+    downloads = downloads,
     last_release = last_release,
+    open_issues = gh_info$open_issues,
+    last_updated = gh_info$last_updated,
+    stars = gh_info$stars,
+    forks = gh_info$forks,
+    first_release = first_release,
     total_releases = lengths(archived_release_dates) + 1,
     releases_last_52,
-    timings = timings,
-    deps_timings = timings_user
+    num_dev = lengths(dev_deps),
+    install_dev = install_user + dev_dep_install,
+    bin_dev = bin_self + bin_dev,
+    src_size = src_size(packages),
+    user_deps = user_deps,
+    dev_deps = dev_deps,
+    self_timings = timings,
+    user_timings = timings_user,
+    dev_timings = timings_dev
   )
 }
 
 get_timings <- function(pkgs, repos = getOption("repos")) {
   urls <- sprintf("%s/web/checks/check_results_%s.html", repos[["CRAN"]] %||% repos, pkgs)
-  out_files <- file.path(the$dir, sprintf("check_resutls_%s.html", pkgs))
+  out_files <- file.path(the$dir, sprintf("check_results_%s.html", pkgs))
 
   new <- !file.exists(out_files)
 
   if (any(new)) {
-    download.file(urls[new], out_files[new], method = "libcurl", quiet = TRUE)
+    suppressWarnings(try(
+        download.file(urls[new], out_files[new], method = "libcurl", quiet = TRUE), silent = TRUE))
   }
 
   lapply(stats::setNames(out_files, pkgs), parse_timing)
 }
 
-parse_timing <- function(file) {
+parse_timing <- memoise::memoise(function(file) {
+  if (!file.exists(file)) {
+    return()
+  }
+
   rvest::html_table(xml2::read_html(file))[[1]]
-}
+})
 
 median_install_time <- function(timings) {
-  vapply(timings, function(x) median(x$Tinstall, na.rm = TRUE), numeric(1))
+  if (is.null(timings)) {
+    return(NA_real_)
+  }
+
+  vapply(timings, function(x) median(x$Tinstall, na.rm = TRUE) %||% NA_real_, numeric(1))
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
@@ -106,17 +129,21 @@ median_install_time <- function(timings) {
 the <- new.env(parent = emptyenv())
 
 .onLoad <- function(...) {
-  the$dir <- tempfile()
-  dir.create(the$dir)
+  the$dir <- "cache"
+  dir.create(the$dir, showWarnings = FALSE)
 }
 
 .onUnload <- function(libpath) {
-  unlink(the$dir, recursive = TRUE)
+  #unlink(the$dir, recursive = TRUE)
 }
 
 
-find_deps <- function(packages, available = available.packages(),
+find_deps <- function(packages,
                       top_dep = TRUE, rec_dep = NA, include_pkgs = TRUE) {
+
+  if (is.null(the$cache)) {
+    the$cache <- pkgcache::cranlike_metadata_cache$new(platforms = "source", bioc = TRUE)
+  }
 
   if (length(packages) == 0 || identical(top_dep, FALSE))
     return(character())
@@ -124,18 +151,20 @@ find_deps <- function(packages, available = available.packages(),
   top_dep <- standardise_dep(top_dep)
   rec_dep <- standardise_dep(rec_dep)
 
-  top <- tools::package_dependencies(packages, db = available, which = top_dep)
-  top_flat <- unlist(top, use.names = FALSE)
+  top <- the$cache$deps(packages, dependencies = top_dep, recursive = FALSE)$package
 
-  if (length(rec_dep) != 0 && length(top_flat) > 0) {
-    rec <- tools::package_dependencies(top_flat, db = available, which = rec_dep,
-      recursive = TRUE)
-    rec_flat <- unlist(rec, use.names = FALSE)
+  if (length(rec_dep) != 0 && length(top) > 0) {
+    rec <- the$cache$deps(top, dependencies = rec_dep, recursive = TRUE)$package
   } else {
-    rec_flat <- character()
+    rec <- character()
   }
 
-  unique(c(if (include_pkgs) packages, top_flat, rec_flat))
+  pkgs <- unique(c(top, rec))
+  if (!include_pkgs) {
+    pkgs <- setdiff(pkgs, packages)
+  }
+
+  pkgs
 }
 
 standardise_dep <- function(x) {
@@ -156,4 +185,18 @@ filter_deps <- function(deps, pkgs) {
   lapply(deps, function(d) {
     Filter(Negate(function(x) x %in% pkgs), d)
   })
+}
+
+src_size <- function(pkgs) {
+  cache <- pkgcache::cranlike_metadata_cache$new(platforms = "source", bioc = TRUE)
+  cache$list(pkgs)$filesize
+}
+
+bin_size <- function(pkgs, platform = "macos") {
+  cache <- pkgcache::cranlike_metadata_cache$new(platforms = "macos", bioc = TRUE)
+  cache$list(pkgs)$filesize
+}
+
+get_downloads <- function(pkg, when) {
+  sum(cranlogs::cran_downloads(pkg, when = when)$count)
 }

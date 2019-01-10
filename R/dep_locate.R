@@ -97,11 +97,11 @@ pkg_ls <- function(pkg) {
   grep("^.__", names, invert = TRUE, value = TRUE)
 }
 
-#' Count calls by package for a package
+#' Determine usage of depedencies for a package
 #'
 #' @inheritParams dep_locate
 #' @export
-dep_count_pkg <- function(pkg) {#}, recursive = TRUE) {
+dep_usage_pkg <- function(pkg) {#}, recursive = TRUE) {
   imp <- getNamespaceImports(pkg) %||% list("base" = TRUE)
 
   full_imports <- purrr::map_lgl(imp, isTRUE)
@@ -114,7 +114,7 @@ dep_count_pkg <- function(pkg) {#}, recursive = TRUE) {
 
   pkg_funs <- mget(ls(envir = asNamespace(pkg), all.names = TRUE, sorted = FALSE), envir = asNamespace(pkg), mode = "function", inherits = TRUE, ifnotfound = NA)
 
-  pkg_calls <- do.call(rbind, c(lapply(pkg_funs, dep_count_lang), make.row.names = FALSE, stringsAsFactors = FALSE))
+  pkg_calls <- do.call(rbind, c(lapply(pkg_funs, dep_usage_lang), make.row.names = FALSE, stringsAsFactors = FALSE))
 
   # TODO: get this passing a proper NA
   missing_pkg <- pkg_calls$pkg == "NA"
@@ -124,21 +124,14 @@ dep_count_pkg <- function(pkg) {#}, recursive = TRUE) {
   ours <- is.na(pkg_calls$pkg)
   pkg_calls$pkg[ours] <- pkg
 
-  #if (isTRUE(recursive)) {
-    #searched_pkgs <<- c(pkg, searched_pkgs)
-    #to_search <- setdiff(unique(pkg_calls$pkg), searched_pkgs)
-    #if (length(to_search) > 0) {
-      #pkg_calls <- rbind(pkg_calls, lapply(to_search, dep_count_pkg))
-    #}
-  #}
-  pkg_calls
+  tibble::as.tibble(pkg_calls)
 }
 
-#' Count calls by package for a project
+#' Determine usage of depedencies for a project
 #'
 #' @inheritParams dep_locate
 #' @export
-dep_count_proj <- function(path = ".") {
+dep_usage_proj <- function(path = ".") {
   files <- proj_files(path)
 
   default_pkgs <- c("base", strsplit(Sys.getenv("R_DEFAULT_PACKAGES"), ",")[[1]])
@@ -152,23 +145,22 @@ dep_count_proj <- function(path = ".") {
     unlist(funs, use.names = FALSE)
   )
 
-  pkg_calls <- do.call(rbind, c(lapply(files, dep_count_file), make.row.names = FALSE, stringsAsFactors = FALSE))
+  pkg_calls <- do.call(rbind, c(lapply(files, dep_usage_file), make.row.names = FALSE, stringsAsFactors = FALSE))
 
   # TODO: get this passing a proper NA
   missing_pkg <- pkg_calls$pkg == "NA"
   pkg_calls$pkg[missing_pkg] <- fun_to_pkg[pkg_calls$fun[missing_pkg]]
 
-  pkg_calls
+  tibble::as.tibble(pkg_calls)
 }
 
-dep_count_file <- function(file) {
+dep_usage_file <- function(file) {
   exprs <- parse(file = file)
-  dep_count_lang(exprs)
+  dep_usage_lang(exprs)
 }
-
 
 #' @import rlang
-dep_count_lang <- function(x) {
+dep_usage_lang <- function(x) {
   f <- function(x) {
     if (is_syntactic_literal(x) || is_symbol(x)) {
       return(NULL)
