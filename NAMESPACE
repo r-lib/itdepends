@@ -2,6 +2,8 @@
 
 export(dep_locate)
 export(dep_plot_maintainer)
+export(dep_plot_size)
+export(dep_plot_time)
 export(dep_usage_pkg)
 export(dep_usage_proj)
 export(dep_weight)
