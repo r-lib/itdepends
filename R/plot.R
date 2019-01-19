@@ -36,6 +36,7 @@ plot <- function(x) {
 #' @importFrom forcats fct_relevel fct_reorder
 #' @import ggplot2
 #' @importFrom stringr str_glue
+#' @export
 dep_plot_time <- function(pkg) {
 
   direct_user_deps <- find_deps(pkg, top_dep = NA, rec_dep = FALSE, include_pkgs = FALSE)
@@ -79,6 +80,8 @@ dep_plot_time <- function(pkg) {
     )
 }
 
+#' @inheritParams dep_plot_timing
+#' @export
 dep_plot_size <- function(pkg, platforms = "source") {
 
   direct_user_deps <- find_deps(pkg, top_dep = NA, rec_dep = FALSE, include_pkgs = FALSE)
