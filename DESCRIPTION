@@ -1,5 +1,5 @@
 Package: itdepends
-Title: Weigh a package based on its number of dependencies, time to install and other factors.
+Title: Tools For Dealing With Dependencies
 Version: 0.0.0.9000
 Authors@R:
     person(given = "Jim",
