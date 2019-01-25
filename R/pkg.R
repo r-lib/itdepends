@@ -1,5 +1,8 @@
 #' Calculate the package weight
 #'
+#' @param packages Packages to weigh
+#' @param repos The CRAN or CRAN-like repo to use
+#' @inheritParams cranlogs::cran_downloads
 #' @return
 #' - funs - If you compare the # of exported funs vs the
 #'   number of function you import / use in your package it gives you some idea
@@ -15,6 +18,10 @@
 #'   It also gives you some idea of the API size, which can give you an idea
 #'   how likely it is to change in the future
 #' @export
+#' @examples
+#' \dontrun{
+#'   dep_weight(c("dplyr", "data.table"))
+#' }
 dep_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org"), when = "last-week") {
 
   packages <- stats::setNames(packages, packages)

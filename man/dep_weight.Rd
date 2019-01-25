@@ -7,8 +7,16 @@
 dep_weight(packages, repos = c(CRAN = "https://cloud.r-project.org"),
   when = "last-week")
 }
+\arguments{
+\item{packages}{Packages to weigh}
+
+\item{repos}{The CRAN or CRAN-like repo to use}
+
+\item{when}{\code{last_day}, \code{last_week} or \code{last_month}.
+If this is given, then \code{from} and \code{to} are ignored.}
+}
 \value{
-- exported_funs - If you compare the # of exported funs vs the
+- funs - If you compare the # of exported funs vs the
   number of function you import / use in your package it gives you some idea
   of how much work it would take to remove the dependency. e.g. if you use 50
   functions from dplyr you would have to replicate 1/5 of more of the
@@ -24,4 +32,9 @@ dep_weight(packages, repos = c(CRAN = "https://cloud.r-project.org"),
 }
 \description{
 Calculate the package weight
+}
+\examples{
+\dontrun{
+  dep_weight(c("dplyr", "data.table"))
+}
 }

@@ -1,34 +1,8 @@
-plot <- function(x) {
-  out <- c(median_install_time(x$timings),
-    median_install_time(x$user_dep_timings[[1]]),
-    median_install_time(x$dev_dep_timings[[1]])
-  )
-
-  user_deps <- names(x$user_dep_timings[[1]])
-  dev_deps <- names(x$dev_dep_timings[[1]])
-
-  df <- tibble(
-    package = names(out),
-    time = out,
-    type = case_when(
-      package == x$package ~ "self",
-      package %in% user_deps ~ "user",
-      package %in% dev_deps ~ "dev"
-    )
-  )
-
-  tibble::rownames_to_column(out, "package")
-
-
-  #out <- dplyr::bind_rows(x$timings[[1]], x$user_dep_timings[[1]], x$dev_dep_timings[[1]])
-  #out$type <- dplyr::case_when(
-    #package
-    #)
-  #ggplot(out, aes(fill = ifelse())x$user_dep_timings, aes(x = )
-}
-
-# TODO: use binary size rather than install time
 #' Plot of dependency weights
+#'
+#' `dep_plot_time()` plots the installation time to compile the source package.
+#' `dep_plot_size()` plots the binary package size, `dep_plot_maintainer()`
+#' plots counts of maintainers.
 #'
 #' @param pkg package to plot
 #' @importFrom magrittr %>%
@@ -36,6 +10,7 @@ plot <- function(x) {
 #' @importFrom forcats fct_relevel fct_reorder
 #' @import ggplot2
 #' @importFrom stringr str_glue
+#' @rdname dep_plot
 #' @export
 dep_plot_time <- function(pkg) {
 
@@ -80,9 +55,9 @@ dep_plot_time <- function(pkg) {
     )
 }
 
-#' @inheritParams dep_plot_timing
+#' @rdname dep_plot
 #' @export
-dep_plot_size <- function(pkg, platforms = "source") {
+dep_plot_size <- function(pkg) {
 
   direct_user_deps <- find_deps(pkg, top_dep = NA, rec_dep = FALSE, include_pkgs = FALSE)
 
@@ -126,7 +101,7 @@ dep_plot_size <- function(pkg, platforms = "source") {
 
 #' Plot maintainers of dependencies
 #'
-#' @inheritParams dep_plot_timing
+#' @rdname dep_plot
 #' @export
 dep_plot_maintainer <- function(pkg) {
 

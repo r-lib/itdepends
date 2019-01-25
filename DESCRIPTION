@@ -1,5 +1,5 @@
 Package: itdepends
-Title: Tools For Dealing With Dependencies
+Title: Tools for Dealing with Dependencies
 Version: 0.0.0.9000
 Authors@R:
     person(given = "Jim",
