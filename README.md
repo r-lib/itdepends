@@ -15,3 +15,7 @@ You can install the development version of itdepends with the [devtools](https:/
 # install.packages("devtools")
 devtools::install_github("jimhester/itdepends")
 ```
+
+## Thanks
+
+- Hadley Wickham for coming up with the name of the package / talk.
