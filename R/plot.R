@@ -71,7 +71,7 @@ dep_plot_time <- function(pkg) {
     geom_bar(stat = "identity") +
     scale_y_continuous(labels = pretty_sec) +
     coord_flip() +
-    facet_wrap(vars(dep_type), scale = "free") +
+    facet_wrap(vars(dep_type), scales = "free") +
     labs(
       title = str_glue("{{{pkg}}} dependency weight"),
       subtitle = "median installation time",
@@ -115,7 +115,7 @@ dep_plot_size <- function(pkg, platforms = "source") {
     geom_bar(stat = "identity") +
     scale_y_continuous(labels = prettyunits::pretty_bytes) +
     coord_flip() +
-    facet_wrap(vars(dep_type), scale = "free") +
+    facet_wrap(vars(dep_type), scales = "free") +
     labs(
       title = str_glue("{{{pkg}}} dependency weight"),
       subtitle = "binary size",
@@ -124,6 +124,8 @@ dep_plot_size <- function(pkg, platforms = "source") {
     )
 }
 
+#' Plot maintainers of dependencies
+#'
 #' @inheritParams dep_plot_timing
 #' @export
 dep_plot_maintainer <- function(pkg) {
@@ -166,7 +168,7 @@ dep_plot_maintainer <- function(pkg) {
     geom_bar(stat = "identity") +
     #scale_y_continuous(labels = prettyunits::pretty_bytes) +
     coord_flip() +
-    facet_wrap(vars(dep_type), scale = "free") +
+    facet_wrap(vars(dep_type), scales = "free") +
     labs(
       title = str_glue("{{{pkg}}} dependency weight"),
       subtitle = "binary size",
@@ -183,3 +185,7 @@ get_maintainer <- function(package) {
     }, NA_character_)
   )
 }
+
+utils::globalVariables(c("maintainer", ".", "dep_type", "direct", "package",
+    "filesize", "time", "install_self", "bin_self", "install_user"),
+  "itdepends")

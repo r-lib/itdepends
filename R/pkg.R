@@ -1,7 +1,7 @@
 #' Calculate the package weight
 #'
 #' @return
-#' - exported_funs - If you compare the # of exported funs vs the
+#' - funs - If you compare the # of exported funs vs the
 #'   number of function you import / use in your package it gives you some idea
 #'   of how much work it would take to remove the dependency. e.g. if you use 50
 #'   functions from dplyr you would have to replicate 1/5 of more of the
@@ -22,7 +22,7 @@ dep_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org")
   user_deps <- lapply(packages, find_deps, top_dep = NA, rec_dep = NA, include_pkgs = FALSE)
   dev_deps <- lapply(packages, find_deps, top_dep = TRUE, rec_dep = NA, include_pkgs = FALSE)
 
-  std_pkgs <- unlist(tools:::.get_standard_package_names())
+  std_pkgs <- unlist(get(".get_standard_package_names", asNamespace("tools"))())
 
   exported_funs <- lapply(packages, function(p) tryCatch(getNamespaceExports(p), error = function(e) NA))
 
@@ -41,10 +41,10 @@ dep_weight <- function(packages, repos = c(CRAN = "https://cloud.r-project.org")
   dev_dep_install <- vapply(timings_dev, function(x) sum(median_install_time(x), na.rm = TRUE), numeric(1))
 
   if (is.null(the$archive)) {
-    the$archive <- tools:::read_CRAN_object(repos[["CRAN"]], "src/contrib/Meta/archive.rds")
+    the$archive <- get("read_CRAN_object", asNamespace("tools"))(repos[["CRAN"]], "src/contrib/Meta/archive.rds")
   }
   if (is.null(the$current)) {
-    the$current <- tools:::read_CRAN_object(repos[["CRAN"]], "src/contrib/Meta/current.rds")
+    the$current <- get("read_CRAN_object", asNamespace("tools"))(repos[["CRAN"]], "src/contrib/Meta/current.rds")
   }
 
   # TODO: what timezone is the CRAN machine in?
@@ -101,7 +101,7 @@ get_timings <- function(pkgs, repos = getOption("repos")) {
 
   if (any(new)) {
     suppressWarnings(try(
-        download.file(urls[new], out_files[new], method = "libcurl", quiet = TRUE), silent = TRUE))
+        utils::download.file(urls[new], out_files[new], method = "libcurl", quiet = TRUE), silent = TRUE))
   }
 
   lapply(stats::setNames(out_files, pkgs), parse_timing)
@@ -120,7 +120,7 @@ median_install_time <- function(timings) {
     return(NA_real_)
   }
 
-  vapply(timings, function(x) median(x$Tinstall, na.rm = TRUE) %||% NA_real_, numeric(1))
+  vapply(timings, function(x) stats::median(x$Tinstall, na.rm = TRUE) %||% NA_real_, numeric(1))
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x

@@ -8,16 +8,33 @@ Authors@R:
            email = "james.f.hester@gmail.com")
 Description: Weigh a package based on its number of dependencies, time to install and other factors.
 Imports:
+  dplyr,
+  forcats,
+  ggplot2,
+  magrittr,
+  memoise,
+  stringr,
   lintr,
   xml2,
   rvest,
   tibble,
   rlang,
   requirements,
-  purrr
+  purrr,
+  pkgcache,
+  cranlogs,
+  desc,
+  prettyunits,
+  rematch2,
+  rprojroot,
+  xmlparsedata,
+  tools,
+  stats,
+  utils,
+  gh
 Remotes:
   hadley/requirements
-License: What license it uses
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
