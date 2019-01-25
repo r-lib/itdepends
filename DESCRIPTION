@@ -1,12 +1,12 @@
 Package: itdepends
-Title: Weigh a package based on it's number of dependencies, time to install and other factors.
+Title: Tools For Dealing With Dependencies
 Version: 0.0.0.9000
 Authors@R:
     person(given = "Jim",
            family = "Hester",
            role = c("aut", "cre"),
            email = "james.f.hester@gmail.com")
-Description: Weigh a package based on it's number of dependencies, time to install and other factors.
+Description: Weigh a package based on its number of dependencies, time to install and other factors.
 Imports:
   lintr,
   xml2,
