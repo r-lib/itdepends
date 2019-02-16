@@ -57,10 +57,10 @@ proj_find <- function(path = ".") {
   )
 }
 
-proj_files <- function(path = ".") {
+proj_files <- function(path = ".", dirs = c("R", "tests", "inst", "scripts")) {
   path <- proj_find(path)
 
-  dir(path = file.path(path, c("R", "tests", "inst")),
+  dir(path = file.path(path, dirs),
     pattern = "[.][Rr](?:md)?$", recursive = TRUE,
     full.names = TRUE)
 }
@@ -131,8 +131,8 @@ dep_usage_pkg <- function(pkg) {#}, recursive = TRUE) {
 #'
 #' @inheritParams dep_locate
 #' @export
-dep_usage_proj <- function(path = ".") {
-  files <- proj_files(path)
+dep_usage_proj <- function(path = ".", dirs = c("R", "tests", "inst", "scripts")) {
+  files <- proj_files(path, dirs)
 
   default_pkgs <- c("base", strsplit(Sys.getenv("R_DEFAULT_PACKAGES"), ",")[[1]])
 
@@ -148,10 +148,16 @@ dep_usage_proj <- function(path = ".") {
   pkg_calls <- do.call(rbind, c(lapply(files, dep_usage_file), make.row.names = FALSE, stringsAsFactors = FALSE))
 
   # TODO: get this passing a proper NA
-  missing_pkg <- pkg_calls$pkg == "NA"
-  pkg_calls$pkg[missing_pkg] <- fun_to_pkg[pkg_calls$fun[missing_pkg]]
+  if(class(pkg_calls) == "data.frame"){
+    missing_pkg <- pkg_calls$pkg == "NA"
+    pkg_calls$pkg[missing_pkg] <- fun_to_pkg[pkg_calls$fun[missing_pkg]]
+    
+    tibble::as.tibble(pkg_calls)
+  }else{
+    message("No files to analyze found in `dir`")
+  }
 
-  tibble::as.tibble(pkg_calls)
+  
 }
 
 dep_usage_file <- function(file) {
