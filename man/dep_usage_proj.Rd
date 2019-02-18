@@ -4,10 +4,12 @@
 \alias{dep_usage_proj}
 \title{Determine usage of depedencies for a project}
 \usage{
-dep_usage_proj(path = ".")
+dep_usage_proj(path = ".", dirs = c("R", "tests", "inst", "scripts"))
 }
 \arguments{
 \item{path}{Project path to search in.}
+
+\item{dirs}{vector of directories to search for code}
 }
 \description{
 Determine usage of depedencies for a project

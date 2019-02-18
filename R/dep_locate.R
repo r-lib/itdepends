@@ -130,6 +130,7 @@ dep_usage_pkg <- function(pkg) {#}, recursive = TRUE) {
 #' Determine usage of depedencies for a project
 #'
 #' @inheritParams dep_locate
+#' @param dirs vector of directories to search for code
 #' @export
 dep_usage_proj <- function(path = ".", dirs = c("R", "tests", "inst", "scripts")) {
   files <- proj_files(path, dirs)
@@ -154,7 +155,7 @@ dep_usage_proj <- function(path = ".", dirs = c("R", "tests", "inst", "scripts")
     
     tibble::as.tibble(pkg_calls)
   }else{
-    message("No files to analyze found in `dir`")
+    message("No files to analyze found in `dirs`")
   }
 
   
