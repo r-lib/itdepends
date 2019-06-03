@@ -9,7 +9,7 @@ proportions and assist removal of dependencies.
 
 ## Installation
 
-You can install the development version of itdepends with the [devtools](https://http://devtools.r-lib.org) package.
+You can install the development version of itdepends with the [devtools](http://devtools.r-lib.org) package.
 
 ``` r
 # install.packages("devtools")
