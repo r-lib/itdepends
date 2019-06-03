@@ -1,7 +1,7 @@
 # itdepends
 
 <!-- badges: start -->
-![![Travis build status](https://travis-ci.org/jimhester/itdepends.svg?branch=master)](https://travis-ci.org/jimhester/itdepends)
+[![Travis build status](https://travis-ci.org/jimhester/itdepends.svg?branch=master)](https://travis-ci.org/jimhester/itdepends)
 <!-- badges: end -->
 
 itdepends provides tools to assess usage, measure weights, visualize
