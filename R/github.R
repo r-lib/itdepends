@@ -2,7 +2,7 @@ get_github_info <- function(package) {
   repo <- github_repo(package)
 
   if (is.na(repo)) {
-    return(tibble::tibble(package, open_issues = NA_real_, last_updated = as.POSIXct(NA_real_), stars = NA_real_, forks = NA_real_))
+    return(tibble::tibble(package, open_issues = NA_real_, last_updated = as.POSIXct(NA_real_, origin = "1970-01-01"), stars = NA_real_, forks = NA_real_))
   }
 
   res <- gh::gh("GET /repos/:repo", repo = repo)
