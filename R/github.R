@@ -12,7 +12,7 @@ get_github_info <- function(package) {
 
 github_repo <- function(package) {
   desc <- desc::desc(package = package)
-  url_fields <- c(desc$get_urls(), desc$get_field("BugReports"))
+  url_fields <- c(desc$get_urls(), desc$get_field("BugReports", default = NULL))
   if (length(url_fields) == 0) {
     return(NA_character_)
   }
