@@ -25,7 +25,8 @@ github_repo <- function(package) {
     "repo", "subdir")]
   parts <- unique(stats::na.omit(parts))
   if (nrow(parts) != 1) {
-    stop("Could not determine development repository", call. = FALSE)
+    warning("Could not determine development repository", call. = FALSE)
+    return(NA)
   }
   ref <- paste0(c(parts$username, parts$repo, if (nzchar(parts$subdir)) parts$subdir),
     collapse = "/")
