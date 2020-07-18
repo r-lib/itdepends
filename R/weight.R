@@ -196,7 +196,7 @@ filter_deps <- function(deps, pkgs) {
 
 src_size <- function(pkgs) {
   cache <- pkgcache::cranlike_metadata_cache$new(platforms = "source", bioc = TRUE)
-  cache$list(pkgs)$filesize
+  unique(cache$list(pkgs)$filesize)
 }
 
 bin_size <- function(pkgs, platform = "macos") {
